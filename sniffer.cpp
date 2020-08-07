@@ -11,6 +11,8 @@
 using namespace std;
 using namespace Crafter;
 
+/*packet_expulison doset work yet 
+**after programing the layer 5 protocols idenefision ill handule that*/
 
 void packet_expulsion(Packet* sniff_packet, void* user){
 	size_t NumberOfLayers = sniff_packet->GetLayerCount();
@@ -51,6 +53,36 @@ void packet_expulsion(Packet* sniff_packet, void* user){
 	
 	
 }
+void Http_opsions(string payload){
+	
+	
+	if(payload.substr(0,3).compare("GET")==0){
+		cout <<"GET request:\n";
+		cout <<payload<<endl;
+	}
+	else if(payload.substr(0,4).compare("POST")==0){
+		cout << "POST request: \n";
+		cout << payload <<endl;
+	}
+	else if (payload.substr(0,8).compare("HTTP/1.1")==0)
+	{
+		cout << "HTTP Respone:\n";
+		cout <<payload<<endl;
+	}
+	else
+	{
+		cout << "encrepted message/ cant idenfiy:\n";
+		cout << payload << endl;
+	}
+	
+	
+
+	
+		
+
+	}
+
+
 
 void Http_check(Packet* sniff_packet){
 	RawLayer* raw_payload = sniff_packet->GetLayer<RawLayer>();
@@ -59,21 +91,15 @@ void Http_check(Packet* sniff_packet){
 		cout <<"raw_payload"<<endl;	
 		if(raw_payload->GetPayloadSize()>0){
 			string payload = raw_payload->GetStringPayload();
-		
-			cout << payload << endl;
+			Http_opsions(payload);
+
 		}
-	TCP* tcp_layer = sniff_packet->GetLayer<TCP>();
-	if(tcp_layer) {
-		if(tcp_layer->GetPayloadSize()>0){
-			cout <<"tcp_payload"<<endl;
-			string payload = tcp_layer->GetStringPayload();
-			cout<< payload<<endl;
-		}
+	
 
 
 }
 	}
-}
+
 	
 
 
@@ -208,7 +234,7 @@ int main() {
 	/* Set the interface */
 	string iface = "ens33";
 	Sniffer sniff_tcp("tcp", iface, PacketHandler);
-	sniff_tcp.Capture(5);
+	sniff_tcp.Capture(-1);
 
 	return 0;
 }
