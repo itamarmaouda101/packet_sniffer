@@ -14,19 +14,9 @@ using namespace Crafter;
 
 /*packet_expulison doset work yet 
 **after programing the layer 5 protocols idenefision ill handule that*/
-void tcp_flags(Packet* sniff_packet){
-	TCP* tcp_layer = sniff_packet->GetLayer<TCP>();
-	cout<<"tcp ack number: "<< tcp_layer->GetAckNumber()<<endl;
-	cout<<"packet flags: "<< tcp_layer->GetFlags()<< endl;
-	cout<< "tcp FIN:"<< tcp_layer->GetFIN()<<endl;
-	cout<<"tcp CWR:"<< tcp_layer->GetCWR()<< endl;
-	cout << "tcp "<< tcp_layer->GetECE() << endl;
-	cout << "tcp"<< tcp_layer->GetPSH()<< endl;
-	cout << "tcp "<< tcp_layer->GetRST() << endl;
-	cout<< "tcp "<< tcp_layer->GetSYN() << endl;
-	cout << "tcp "<< tcp_layer->GetURG() <<endl;
+
 	
-}
+
 void packet_expulsion(Packet* sniff_packet, void* user){
 	size_t NumberOfLayers = sniff_packet->GetLayerCount();
 	TCP* tcp_layer = sniff_packet->GetLayer<TCP>();
