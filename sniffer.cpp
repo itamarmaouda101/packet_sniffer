@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string.h>
 #include <map>
+#include "EthernetLibs.h"
 #include <crafter.h>
 /* Collapse namespaces */
 using namespace std;
