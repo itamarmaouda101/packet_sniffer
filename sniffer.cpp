@@ -8,7 +8,8 @@
 #include <map>
 #include "EthernetLibs.h"
 #include <crafter.h>
-/* Collapse namespaces */
+#include <bits/stdc++.h>
+
 using namespace std;
 using namespace Crafter;
 
@@ -235,7 +236,6 @@ void PacketHandler(Packet* sniff_packet, void* user) {
 int main() {
 
 	/* Set the interface */
-	string iface = "ens33";
 	Sniffer sniff_tcp("tcp", iface, PacketHandler);
 	sniff_tcp.Capture(-1);
 

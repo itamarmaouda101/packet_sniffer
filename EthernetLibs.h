@@ -1,8 +1,14 @@
 #include<iostream>
 #include<crafter.h>
 #include<string>
+#include <algorithm>
+#include <vector>
+#include <bits/stdc++.h>
+#define iface "ens33"
 using namespace std;
 using namespace Crafter;
+
+
 int NextSeqNumber(TCP* tcp_layer){
     long seq_num = tcp_layer->GetSeqNumber();
     int len = tcp_layer->GetPayloadSize();
@@ -37,14 +43,107 @@ bool sameaddr(Packet* packet1, Packet* packet2){
 
 
 }
-
 bool verfiySYN_ACK(Packet* packet1, Packet* packet2){
     if (sameaddr(packet1, packet2)){
-        /*start checking */
+        TCP* tcp_layer_packet1 = packet1->GetLayer<TCP>();
+        TCP* tcp_layer_packet2 = packet2->GetLayer<TCP>();
+        int seq_number_packet1 = tcp_layer_packet1->GetSeqNumber();
+        int seq_number_packet2 = tcp_layer_packet2->GetSeqNumber();
+        int ack_number_packet1 = tcp_layer_packet1->GetAckNumber();
+        int ack_number_packet2 = tcp_layer_packet2->GetAckNumber();
+        if (seq_number_packet1 == ack_number_packet2){
+            cout<< "packet1 --> packet2";
+            return true;
+        } 
+        if( seq_number_packet2 == ack_number_packet1){
+            cout << "packet2 --> packet1";
+            return true;
+        }
+        else{
+        cout<< "there's not connection";
+        return false;
+        }
     }
+    return false;
     
 
 }
+string check_in_out(Packet* packet){
+    IP* ip_layer = packet->GetLayer<IP>();
+    string my_ip = GetMyIP(iface);
+
+    if (ip_layer->GetDestinationIP() == my_ip){
+        /*GOING INSIDE*/
+        return "in";
+    }
+    if(ip_layer->GetSourceIP() == my_ip){
+        /*GOING OUTSIDE*/
+        return "out";
+    }
+    else{
+        /*ERROR*/
+        return "error";
+    }
+}
+
+std::vector <Packet*> going_outside_packets;
+std::vector <Packet*> going_inside_packets;
+
+
+int is_ip_in(vector <Packet*> packets, string ip, string type){
+    if (type == "inside"){
+        for(int i=0; packets.size();i++){
+            Packet* packet = packets[i];
+            IP* ip_layer = packet->GetLayer<IP>();
+            string arr_dst_ip = ip_layer->GetDestinationIP(); 
+            if (arr_dst_ip==ip){
+                return i;
+            }
+        }
+    }
+    if (type == "outside"){
+         for(int i=0; packets.size();i++){
+            IP* ip_layer = packets[i]->GetLayer<IP>();
+            string arr_src_ip = ip_layer->GetSourceIP(); 
+            if (arr_src_ip==ip){
+                return i;
+            }
+        }
+
+    }
+    return 9999;
+
+}
+void new_packet(Packet* packet){
+    string type = check_in_out(packet);
+    IP* ip_layer = packet->GetLayer<IP>();
+    string ip = ip_layer->GetSourceIP();
+    if (type == "in"){
+        
+        if (is_ip_in(going_inside_packets, ip, "in") != 9999 ){
+            if (verfiySYN_ACK(packet,going_inside_packets[is_ip_in(going_inside_packets, ip, "inside")])){
+                /*found that there is connection between the packets*/
+                /*now i need to hundle that*/
+            }
+        }
+        else{
+            /*didntfound, lets add it*/
+        }
+
+        /*hundle come out packet*/
+    }
+    if (type == "out"){
+        /*hundle come out packet*/
+    }
+    else{
+        /*hundle eror<- drop packet*/
+    }
+    
+}
+void packetconnecsion(Packet* packet){
+
+}
+
 void tcp_flags(Packet* sniff_packet){
 	TCP* tcp_layer = sniff_packet->GetLayer<TCP>();
 	cout<<"tcp ack number: "<< tcp_layer->GetAckNumber()<<endl;
