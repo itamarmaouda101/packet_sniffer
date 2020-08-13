@@ -1,12 +1,62 @@
+#ifndef EthernetLibs
+#define EthernetLibs
 #include<iostream>
 #include<crafter.h>
 #include<string>
 #include <algorithm>
 #include <vector>
+#include "httpLib.hpp"
 #include <bits/stdc++.h>
+#include<stdio.h>
+#include<stdlib.h>
+#include<unistd.h>
+#include<errno.h>
+#include <netdb.h>
+#include<sys/types.h>
+#include<sys/socket.h>
+#include<netinet/in.h>
+#include<arpa/inet.h>
 #define iface "ens33"
 using namespace std;
 using namespace Crafter;
+
+/*program that findes host name*/
+/*----START_CODING---*/
+void check_host_name(int hostname){
+    /*returns the hostname of the local computer*/
+    if (hostname == -1){
+        perror("gethostname");
+        exit(1);
+    }
+}
+void check_host_entry(struct hostent * hostentry){
+    /*find host info from host name*/
+    if (hostentry == NULL){
+        perror("gethostname");
+        exit(1);   
+    }
+}
+void IP_formatter(char *IPbuffer){
+    /*corvent ip string to dotted decimal format*/
+    if (NULL ==IPbuffer){
+        perror("inet_ntoa");
+        exit(1);
+    }
+}
+void get_hostname(int hostname){
+    char host[256];
+    char *IP;
+    struct hostent *host_entry;
+    /*   hostname = gethostname(host, sizeof(host)); //find the host name*/
+    check_host_name(hostname);
+    host_entry = gethostbyname(host);
+    check_host_entry(host_entry);
+   IP = inet_ntoa(*((struct in_addr*) host_entry->h_addr_list[0])); //Convert into IP string    cout<< "Current host name: " << host <<endl;
+    cout<< "host ip: "<< IP<<endl; 
+}
+
+
+/*---END_OF_CODING*/
 
 
 int NextSeqNumber(TCP* tcp_layer){
@@ -43,6 +93,8 @@ bool sameaddr(Packet* packet1, Packet* packet2){
 
 
 }
+
+
 bool verfiySYN_ACK(Packet* packet1, Packet* packet2){
     if (sameaddr(packet1, packet2)){
         TCP* tcp_layer_packet1 = packet1->GetLayer<TCP>();
@@ -120,19 +172,31 @@ void new_packet(Packet* packet){
     string ip = ip_layer->GetSourceIP();
     if (type == "in"){
         
-        if (is_ip_in(going_inside_packets, ip, "in") != 9999 ){
-            if (verfiySYN_ACK(packet,going_inside_packets[is_ip_in(going_inside_packets, ip, "inside")])){
+        if (is_ip_in(going_inside_packets, ip, "inside") != 9999 ){
+            if (verfiySYN_ACK(packet,going_outside_packets[is_ip_in(going_outside_packets, ip, "outside")])){
                 /*found that there is connection between the packets*/
                 /*now i need to hundle that*/
             }
         }
         else{
+            going_inside_packets.push_back(packet);
+            new_packet(packet);
             /*didntfound, lets add it*/
         }
 
         /*hundle come out packet*/
     }
     if (type == "out"){
+        if (is_ip_in(going_inside_packets, ip, "outside") != 9999 ){
+            if (verfiySYN_ACK(packet,going_inside_packets[is_ip_in(going_inside_packets, ip, "inside")])){
+                /*found that there is connection between the packets*/
+                /*now i need to hundle that*/
+            }
+        }
+        else{
+            going_inside_packets.push_back(packet);
+            new_packet(packet);
+        }
         /*hundle come out packet*/
     }
     else{
@@ -156,3 +220,56 @@ void tcp_flags(Packet* sniff_packet){
 	cout<< "tcp SYN Flag:"<< tcp_layer->GetSYN() << endl;
 	cout << "tcp URG Flag:"<< tcp_layer->GetURG() <<endl;
 }
+
+/*packet_expulison doset work yet 
+**after programing the layer 5 protocols idenefision ill handule that*/
+
+	
+
+void packet_expulsion(Packet* sniff_packet, void* user){
+	size_t NumberOfLayers = sniff_packet->GetLayerCount();
+	TCP* tcp_layer = sniff_packet->GetLayer<TCP>();
+	UDP* udp_layer = sniff_packet->GetLayer<UDP>();
+	RawLayer* raw_layer = sniff_packet->GetLayer<RawLayer>();
+	byte* raw_ptr;
+
+	if (tcp_layer){
+		Layer* top_layer = tcp_layer->GetTopLayer();
+		Payload payload = top_layer->GetPayload();
+		size_t data = top_layer->GetData(raw_ptr);
+		cout <<data<<endl;
+	}
+	if (udp_layer){
+		Layer* top_layer = udp_layer->GetTopLayer();
+		Payload payload = top_layer->GetPayload();
+		size_t data = top_layer->GetData(raw_ptr);
+		cout <<data<<endl;
+	}
+	Layer* top_layer = raw_layer->GetTopLayer(); 
+
+	byte*  payload_bytes;
+
+	Payload payload = top_layer->GetPayload();
+	size_t data = top_layer->GetRawData(raw_ptr);
+	cout <<data<<endl;
+	/*
+	size_t payload_size_t = top_layer->GetPayload(payload_bytes);
+	cout<< "payload:\n\n"<< endl;
+	cout<<payload.GetString()<<endl;
+	cout<<"\n\n payload (bytes)\n\n"<<endl;
+	cout<<payload_bytes.G<<endl;
+	cout<<"\n"<< payload_size_t<<endl;
+	*/
+
+
+	
+	
+}
+
+
+
+
+	
+
+	
+#endif

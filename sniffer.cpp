@@ -5,114 +5,16 @@
  */
 #include <iostream>
 #include <string.h>
+#include "httpLib.hpp"
 #include <map>
-#include "EthernetLibs.h"
+#include "EthernetLibs.hpp"
 #include <crafter.h>
 #include <bits/stdc++.h>
 
 using namespace std;
 using namespace Crafter;
-
-/*packet_expulison doset work yet 
-**after programing the layer 5 protocols idenefision ill handule that*/
-
-	
-
-void packet_expulsion(Packet* sniff_packet, void* user){
-	size_t NumberOfLayers = sniff_packet->GetLayerCount();
-	TCP* tcp_layer = sniff_packet->GetLayer<TCP>();
-	UDP* udp_layer = sniff_packet->GetLayer<UDP>();
-	RawLayer* raw_layer = sniff_packet->GetLayer<RawLayer>();
-	byte* raw_ptr;
-
-	if (tcp_layer){
-		Layer* top_layer = tcp_layer->GetTopLayer();
-		Payload payload = top_layer->GetPayload();
-		size_t data = top_layer->GetData(raw_ptr);
-		cout <<data<<endl;
-	}
-	if (udp_layer){
-		Layer* top_layer = udp_layer->GetTopLayer();
-		Payload payload = top_layer->GetPayload();
-		size_t data = top_layer->GetData(raw_ptr);
-		cout <<data<<endl;
-	}
-	Layer* top_layer = raw_layer->GetTopLayer(); 
-
-	byte*  payload_bytes;
-
-	Payload payload = top_layer->GetPayload();
-	size_t data = top_layer->GetRawData(raw_ptr);
-	cout <<data<<endl;
-	/*
-	size_t payload_size_t = top_layer->GetPayload(payload_bytes);
-	cout<< "payload:\n\n"<< endl;
-	cout<<payload.GetString()<<endl;
-	cout<<"\n\n payload (bytes)\n\n"<<endl;
-	cout<<payload_bytes.G<<endl;
-	cout<<"\n"<< payload_size_t<<endl;
-	*/
-
-
-	
-	
-}
-void Http_opsions(string payload){
-	
-	
-	if(payload.substr(0,3).compare("GET")==0){
-		cout <<"GET request:\n";
-		cout <<payload<<endl;
-	}
-	else if(payload.substr(0,4).compare("POST")==0){
-		cout << "POST request: \n";
-		cout << payload <<endl;
-	}
-	else if (payload.substr(0,8).compare("HTTP/1.1")==0)
-	{
-		cout << "HTTP Respone:\n";
-		cout <<payload<<endl;
-	}
-	else
-	{
-		cout << "encrepted message/ cant idenfiy:\n";
-		cout << payload << endl;
-	}
-	
-	
-
-	
-		
-
-	}
-
-
-
-void Http_check(Packet* sniff_packet){
-	RawLayer* raw_payload = sniff_packet->GetLayer<RawLayer>();
-	if (raw_payload){
-
-		cout <<"raw_payload"<<endl;	
-		if(raw_payload->GetPayloadSize()>0){
-			string payload = raw_payload->GetStringPayload();
-			Http_opsions(payload);
-
-		}
-	
-
-
-}
-	}
-
-	
-
-
-
-
-
-
-/* Function for handling a packet */
-void PacketHandler(Packet* sniff_packet, void* user) {
+void PacketHandler(Packet* sniff_packet, void* user) 
+{
 	/* sniff_packet -> pointer to the packet captured */
 	/* user -> void pointer to the data supplied by the user */
 
@@ -224,11 +126,32 @@ void PacketHandler(Packet* sniff_packet, void* user) {
 
 	cout<<"xxxx\n";
 	}
-	Http_check(sniff_packet);
+    Http_check(sniff_packet);
 
 	cout << "[==========================================================================]\n\n";
 
 }
+
+
+
+
+	
+		
+
+	
+
+
+
+
+
+	
+
+
+
+
+
+
+/* Function for handling a packet */
 
 
 
