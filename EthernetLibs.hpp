@@ -20,6 +20,11 @@
 using namespace std;
 using namespace Crafter;
 
+
+
+
+
+
 /*program that findes host name*/
 /*----START_CODING---*/
 void check_host_name(int hostname){
@@ -60,11 +65,41 @@ void get_hostname(int hostname){
 
 
 int NextSeqNumber(TCP* tcp_layer){
+    /*the next seq number is other packet ack*/
     long seq_num = tcp_layer->GetSeqNumber();
     int len = tcp_layer->GetPayloadSize();
     return seq_num+len;
 }
 /*take to pointer of to packets and compere the ip and the mac adresses to check if there is connection betwen them*/
+bool check_ports(Packet* packet1, Packet* packet2){
+    IP* ip_layer_packet1 = packet1->GetLayer<IP>();
+    IP* ip_layer_packet2 = packet2->GetLayer<IP>();
+    TCP* tcp_layer_packet1 = packet1->GetLayer<TCP>();
+    TCP* tcp_layer_packet2 = packet2->GetLayer<TCP>();
+    UDP* udp_layer_packet1 = packet1->GetLayer<UDP>();
+    UDP* udp_layer_packet2 = packet2->GetLayer<UDP>();
+    string packet1_src_port = ip_layer_packet1->GetSourceIP();
+    string packet2_src_port = ip_layer_packet2->GetSourceIP();
+    string packet1_dst_port;
+    string packet2_dst_port;
+    if (tcp_layer_packet1 && tcp_layer_packet2){
+        packet1_dst_port = tcp_layer_packet1->GetDstPort();
+        packet2_dst_port = tcp_layer_packet2->GetDstPort(); 
+        if ( packet1_src_port == packet2_dst_port && packet2_src_port == packet1_dst_port){
+            return true;
+        }
+    }
+    else if (udp_layer_packet1 && udp_layer_packet2){
+        packet1_dst_port = udp_layer_packet1->GetDstPort();
+        packet2_dst_port = udp_layer_packet2->GetDstPort();
+        if (packet1_src_port == packet2_dst_port && packet2_src_port == packet1_dst_port){
+            return true;
+        }
+    
+    }
+        return false;
+     
+}
 bool sameaddr(Packet* packet1, Packet* packet2){
     bool ip_verfiy= false;
     bool mac_verfiy = false;
@@ -103,12 +138,12 @@ bool verfiySYN_ACK(Packet* packet1, Packet* packet2){
         int seq_number_packet2 = tcp_layer_packet2->GetSeqNumber();
         int ack_number_packet1 = tcp_layer_packet1->GetAckNumber();
         int ack_number_packet2 = tcp_layer_packet2->GetAckNumber();
-        if (seq_number_packet1 == ack_number_packet2){
-            cout<< "packet1 --> packet2";
+        if (seq_number_packet2 == ack_number_packet1){
+            cout<< "packet2 --> packet1";
             return true;
         } 
-        if( seq_number_packet2 == ack_number_packet1){
-            cout << "packet2 --> packet1";
+        if( seq_number_packet1 == ack_number_packet2){
+            cout << "packet1 --> packet2";
             return true;
         }
         else{
@@ -204,10 +239,27 @@ void new_packet(Packet* packet){
     }
     
 }
-void packetconnecsion(Packet* packet){
-
+void FromByte(unsigned char c, bool b[8])
+{
+    for (int i=0; i < 8; ++i)
+        b[i] = (c & (1<<i)) != 0;
 }
 
+bool disconnect(Packet* packet1){
+    
+    TCP* tcp_layer_packet1 = packet1->GetLayer<TCP>();
+    //TCP* tcp_layer_packet2 = packet2->GetLayer<TCP>();
+    if (tcp_layer_packet1){
+        if (tcp_layer_packet1->GetFIN()){/**/
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+    return false;
+
+}
 void tcp_flags(Packet* sniff_packet){
 	TCP* tcp_layer = sniff_packet->GetLayer<TCP>();
 	cout<<"tcp ack number: "<< tcp_layer->GetAckNumber()<<endl;
@@ -226,7 +278,7 @@ void tcp_flags(Packet* sniff_packet){
 
 	
 
-void packet_expulsion(Packet* sniff_packet, void* user){
+/*void packet_expulsion(Packet* sniff_packet, void* user){
 	size_t NumberOfLayers = sniff_packet->GetLayerCount();
 	TCP* tcp_layer = sniff_packet->GetLayer<TCP>();
 	UDP* udp_layer = sniff_packet->GetLayer<UDP>();
@@ -262,9 +314,11 @@ void packet_expulsion(Packet* sniff_packet, void* user){
 	*/
 
 
+
 	
 	
-}
+
+
 
 
 

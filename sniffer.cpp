@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string.h>
 #include "httpLib.hpp"
+#include "sshLib.hpp"
 #include <map>
 #include "EthernetLibs.hpp"
 #include <crafter.h>
@@ -13,6 +14,13 @@
 
 using namespace std;
 using namespace Crafter;
+/*
+void packet_expulison(Packet* packet){
+	size_t number_of_layers = packet->GetLayerCount();
+	const Protocol* layer_ptr;
+	Protocol* layer = packet->GetLayer(layer_ptr);
+
+}*/
 void PacketHandler(Packet* sniff_packet, void* user) 
 {
 	/* sniff_packet -> pointer to the packet captured */
@@ -26,12 +34,19 @@ void PacketHandler(Packet* sniff_packet, void* user)
 	IP* ip_layer = sniff_packet->GetLayer<IP>();
 	ARP* arp_layer = sniff_packet->GetLayer<ARP>();
 	ICMP* icmp_layer = sniff_packet->GetLayer<ICMP>();
+	SLL* sll_layer = sniff_packet->GetLayer<SLL>();
 	if (tcp_layer) {cout << "[+] ----  TCP_PACKET  ---- [+]\n\n" << endl;}
 	if (udp_layer) {cout << "[+] ----  UDP_PACKET  ---- [+]\n\n" << endl;}
 	if (arp_layer) {cout << "[+] ----  ARP_PACKET  ---- [+]\n\n" << endl;}
 	if (icmp_layer) {cout << "[+] ----  ICMP_PACKET  ---- [+]\n\n" << endl;}
 
-
+	if(sll_layer){
+		/*ssl is like the link layer, just antoher opsion by libpcap*/
+		cout << "[+ --- INFO FROM SLL LAYER --- [+]\n\n"<<endl;
+		cout <<"[#] Packet address: " << sll_layer->GetAddressType()<<endl;
+		cout <<"[#] Packet type: "<<sll_layer->GetPackeType()<<endl;
+		cout <<"[#] Packet protocol: " << sll_layer->GetProtocol()<<endl;
+	}
 	if (ip_layer){
 		/*Summarize some data for it layer*/
 		cout << "[+] --- INFO FROM IP LAYER --- [+] \n\n"<< endl;
@@ -99,6 +114,7 @@ void PacketHandler(Packet* sniff_packet, void* user)
 		cout << "[#] TCP Packet Destination Port: " << tcp_layer->GetDstPort() << endl;
 		cout << "[#] TCP Packet Seq Number: " << tcp_layer->GetSeqNumber() << endl;
 		cout << "[#] TCP Packet Ack Number: " << tcp_layer->GetAckNumber() << endl;
+		cout << "[#] TCP Packet Fin flag:" << tcp_layer->GetFIN()<<endl;
 		//string payload = tcp_layer->GetStringPayload();
 		//cout << payload << endl;
 
@@ -123,12 +139,12 @@ void PacketHandler(Packet* sniff_packet, void* user)
 		string payload = raw_payload->GetStringPayload();
 		cout << payload << endl;
 
-
 	cout<<"xxxx\n";
 	}
     Http_check(sniff_packet);
 
 	cout << "[==========================================================================]\n\n";
+	disconnect(sniff_packet);
 
 }
 
@@ -159,7 +175,7 @@ void PacketHandler(Packet* sniff_packet, void* user)
 int main() {
 
 	/* Set the interface */
-	Sniffer sniff_tcp("tcp", iface, PacketHandler);
+	Sniffer sniff_tcp("tcp and src 192.168.1.214 or dst 192.168.1.214", iface, PacketHandler);
 	sniff_tcp.Capture(-1);
 
 	return 0;
