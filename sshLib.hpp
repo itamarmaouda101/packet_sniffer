@@ -17,8 +17,8 @@ bool check_shh(Packet* packet){
     return false;
 }
 void ssh_hundle(Packet* packet, void* user){
-    TCP* tcp_layer = packet->GetLayer<TCP>();
-    if (!disconnect(tcp_layer)){
+    
+    if (!disconnect(packet)){
         /*hundle the tcp: ttl and save data + begin of the raw_payload*/
         
 

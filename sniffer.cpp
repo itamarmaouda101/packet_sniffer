@@ -8,6 +8,7 @@
 #include "httpLib.hpp"
 #include "sshLib.hpp"
 #include <map>
+#include "ftpLib.hpp" 
 #include "EthernetLibs.hpp"
 #include <crafter.h>
 #include <bits/stdc++.h>
@@ -175,7 +176,7 @@ void PacketHandler(Packet* sniff_packet, void* user)
 int main() {
 
 	/* Set the interface */
-	Sniffer sniff_tcp("tcp and src 192.168.1.214 or dst 192.168.1.214", iface, PacketHandler);
+	Sniffer sniff_tcp("src 192.168.1.214 or dst 192.168.1.214", iface, PacketHandler);
 	sniff_tcp.Capture(-1);
 
 	return 0;
